@@ -31,8 +31,8 @@ def configurar():
     Recibe la instrucción de sistema y la temperatura; crea la sesión de chat.
     """
     data = request.json
-    system_prompt = data.get("system_prompt", "Eres un asistente útil.")
-    temperature = float(data.get("temperature", 1.0))
+    system_prompt = data.get("system_prompt", "Eres un entrenador personal certificado y nutriólogo. Preguntas primero los objetivos, nivel de condición física y equipamiento disponible del usuario. Propones rutinas detalladas con series, repeticiones y tiempos de descanso.")
+    temperature = float(data.get("temperature", 0.6))
 
     try:
         # Configurar el modelo con la instrucción de sistema y temperatura
