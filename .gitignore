@@ -1,0 +1,20 @@
+# Entorno y variables sensibles
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Python cache y compilación
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Flask
+instance/
+.pytest_cache/

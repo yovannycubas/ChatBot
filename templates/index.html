@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon's Bar - CyberChat 2099</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-overlay"></div>
+    
+    <div class="app-container">
+        <!-- Panel de Configuración -->
+        <aside class="config-panel">
+            <h1 class="glitch" data-text="NEON'S BAR">NEON'S BAR</h1>
+            <p class="subtitle">Ciudad Nueva, 2099</p>
+            
+            <div class="config-section">
+                <label for="system-prompt">Instrucción de Sistema</label>
+                <textarea id="system-prompt" placeholder="Ej: Eres Neon, un barman cínico en una metrópolis cyberpunk. Habla con argot futurista y ofrece consejos de vida...">Eres Neon, un barman cínico pero sabio en una metrópolis cyberpunk del año 2099. Usas argot futurista (como 'posquemado', 'glitch', 'nanobots'). Ofreces consejos sobre la vida en la ciudad y cuentas anécdotas cortas sobre tus clientes habituales. Mantente siempre en el personaje. Responde de forma concisa pero con estilo. Eres experto en mezclar bebidas sintéticas y escuchar problemas de hackers y cyborgs.</textarea>
+            </div>
+            
+            <div class="config-section">
+                <div class="slider-header">
+                    <label for="temperature">Temperatura</label>
+                    <span id="temp-val">0.8</span>
+                </div>
+                <input type="range" id="temperature" min="0.0" max="2.0" step="0.1" value="0.8">
+            </div>
+            
+            <button id="apply-config" class="btn primary">Aplicar Configuración</button>
+            <button id="reset-chat" class="btn secondary">Reiniciar Sesión</button>
+        </aside>
+
+        <!-- Área de Chat -->
+        <main class="chat-area">
+            <div id="chat-messages" class="messages-container">
+                <div class="message bot intro">
+                    <div class="bubble">Bienvenido a mi rincón, forastero. Ajusta mi "personalidad" si buscas algo específico, o solo pide un trago virtual. Estamos en línea.</div>
+                </div>
+            </div>
+            
+            <div id="loading-indicator" class="loading hidden">
+                <div class="dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <p>Neon está escribiendo...</p>
+            </div>
+
+            <div class="input-area">
+                <textarea id="user-input" placeholder="Escribe tu mensaje... (Enter para enviar)"></textarea>
+                <button id="send-btn" class="send-button">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
