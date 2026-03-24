@@ -133,6 +133,22 @@ input[type="range"] {
     margin-top: 0.5rem;
 }
 
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+.slider-labels span:first-child {
+    color: var(--neon-cyan);
+}
+
+.slider-labels span:last-child {
+    color: var(--neon-pink);
+}
+
 .btn {
     width: 100%;
     padding: 0.8rem;
