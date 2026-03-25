@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, jsonify
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
@@ -8,18 +8,21 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configurar la API de Gemini
+# Configurar el cliente de Google GenAI usando el nuevo SDK (V1+)
 api_key = os.getenv("GEMINI_API_KEY")
+client = None
 if api_key:
-    genai.configure(api_key=api_key)
+    try:
+        # Usar el SDK oficial actualizado
+        client = genai.Client(api_key=api_key)
+        print("INFO: Cliente de Google GenAI configurado correctamente.")
+    except Exception as e:
+        print(f"ERROR: No se pudo configurar el cliente: {str(e)}")
 else:
     print("WARNING: GEMINI_API_KEY no encontrada en el archivo .env")
 
-# Almacenamiento en memoria para la sesión de chat activa
-active_session = {
-    "chat": None,
-    "model": None
-}
+# Almacenamiento en memoria para la sesión activa de chat (usando un diccionario global)
+active_chat_session = None
 
 @app.route("/")
 def index():
@@ -28,40 +31,55 @@ def index():
 @app.route("/configurar", methods=["POST"])
 def configurar():
     """
-    Recibe la instrucción de sistema y la temperatura; crea la sesión de chat.
+    Inicializa una nueva sesión de chat con el nuevo SDK.
     """
+    global active_chat_session, client
+    
+    if client is None:
+        return jsonify({"status": "error", "message": "API Key no configurada o cliente no iniciado."}), 500
+        
     data = request.json
-    system_prompt = data.get("system_prompt", "Eres un entrenador personal certificado y nutriólogo. Preguntas primero los objetivos, nivel de condición física y equipamiento disponible del usuario. Propones rutinas detalladas con series, repeticiones y tiempos de descanso.")
-    temperature = float(data.get("temperature", 0.6))
+    system_prompt = data.get("system_prompt", "Eres un barman cyberpunk.")
+    temperature = float(data.get("temperature", 0.7))
 
     try:
-        # Configurar el modelo con la instrucción de sistema y temperatura
-        model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            system_instruction=system_prompt,
-            generation_config={"temperature": temperature}
+        # En el nuevo SDK genai, creamos el chat directamente con la configuración inicial
+        # El modelo estable 'gemini-1.5-flash' es el más recomendado para cuotas gratuitas.
+        active_chat_session = client.chats.create(
+            model="gemini-1.5-flash",
+            config={
+                'system_instruction': system_prompt,
+                'temperature': temperature,
+            }
         )
-        # Crear una nueva sesión de chat con historial vacío
-        active_session["chat"] = model.start_chat(history=[])
-        active_session["model"] = model
         
         return jsonify({
             "status": "success", 
-            "message": "Sesión iniciada con éxito",
-            "config": {"prompt_preview": system_prompt[:50] + "...", "temperature": temperature}
+            "message": "Sesión iniciada correctamente con el nuevo motor genai",
+            "config": {"model": "gemini-1.5-flash", "temperature": temperature}
         })
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        error_msg = str(e)
+        # Manejo simple para errores comunes
+        if "404" in error_msg:
+            error_msg = "Error 404: No se encontró el modelo. Verifica que tu API Key sea vigente y el modelo exista."
+        elif "429" in error_msg:
+            error_msg = "Error 429: Límite de cuota excedido. Por favor, espera un minuto antes de reintentar."
+            
+        print(f"Error en /configurar: {error_msg}")
+        return jsonify({"status": "error", "message": error_msg}), 500
 
 @app.route("/chat", methods=["POST"])
 def chat():
     """
-    Recibe el mensaje del usuario y devuelve la respuesta de Gemini.
+    Gestiona el envío de mensajes dentro de la sesión de chat activa.
     """
-    if active_session["chat"] is None:
+    global active_chat_session
+    
+    if active_chat_session is None:
         return jsonify({
             "status": "error", 
-            "message": "No hay sesión activa. Por favor, aplica la configuración primero."
+            "message": "No hay sesión activa. Por favor, 'Aplica la configuración' primero para iniciar/reiniciar el chat."
         }), 400
     
     data = request.json
@@ -71,24 +89,29 @@ def chat():
         return jsonify({"status": "error", "message": "El mensaje no puede estar vacío"}), 400
     
     try:
-        # Enviar mensaje a la sesión activa
-        response = active_session["chat"].send_message(user_message)
+        # Envío de mensaje usando el nuevo método send_message del objeto Chat
+        response = active_chat_session.send_message(user_message)
         return jsonify({
             "status": "success", 
             "response": response.text
         })
     except Exception as e:
-        return jsonify({"status": "error", "message": f"Error de Gemini: {str(e)}"}), 500
+        print(f"Error en /chat: {str(e)}")
+        return jsonify({
+            "status": "error", 
+            "message": f"Error al procesar el chat: {str(e)}"
+        }), 500
 
 @app.route("/reset", methods=["POST"])
 def reset():
     """
-    Elimina la sesión actual.
+    Borra la sesión de chat de la memoria.
     """
-    active_session["chat"] = None
-    active_session["model"] = None
-    return jsonify({"status": "success", "message": "Sesión reiniciada"})
+    global active_chat_session
+    active_chat_session = None
+    return jsonify({"status": "success", "message": "Sesión de chat cerrada. Lista para nueva configuración."})
 
 if __name__ == "__main__":
-    # Asegurarse de que el puerto sea el estándar de Flask (5000)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    # Inicia el servidor
+    app.run(host="0.0.0.0", port=port, debug=True)
