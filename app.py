@@ -16,6 +16,13 @@ if api_key:
         # Usar el SDK oficial actualizado
         client = genai.Client(api_key=api_key)
         print("INFO: Cliente de Google GenAI configurado correctamente.")
+        
+        # Listar modelos disponibles para depuración
+        print("--- MODELOS DISPONIBLES EN TU CUENTA ---")
+        for m in client.models.list():
+            print(f" > {m.name}")
+        print("---------------------------------------")
+        
     except Exception as e:
         print(f"ERROR: No se pudo configurar el cliente: {str(e)}")
 else:
@@ -43,10 +50,9 @@ def configurar():
     temperature = float(data.get("temperature", 0.7))
 
     try:
-        # En el nuevo SDK genai, creamos el chat directamente con la configuración inicial
-        # El modelo estable 'gemini-1.5-flash' es el más recomendado para cuotas gratuitas.
+        # Intentamos con gemini-1.5-pro que es más robusto si el flash falla
         active_chat_session = client.chats.create(
-            model="gemini-1.5-flash",
+            model="gemini-1.5-pro",
             config={
                 'system_instruction': system_prompt,
                 'temperature': temperature,
