@@ -50,9 +50,9 @@ def configurar():
     temperature = float(data.get("temperature", 0.7))
 
     try:
-        # Intentamos con gemini-1.5-pro que es más robusto si el flash falla
+        # Usamos 'gemini-flash-latest' que es el nombre estable que aparece en tu lista
         active_chat_session = client.chats.create(
-            model="gemini-1.5-pro",
+            model="gemini-flash-latest",
             config={
                 'system_instruction': system_prompt,
                 'temperature': temperature,
